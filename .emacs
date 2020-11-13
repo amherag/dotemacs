@@ -3,8 +3,6 @@
 
                                         ; Loading packages. Needs `use-package` installed.
 
-(package-initialize)
-
 ;; Fixing signature check failure.
 ;; Uncomment and evaluate this:
 ;; (setq package-check-signature nil)
@@ -13,30 +11,38 @@
 
 
 (require 'package)
-(add-to-list
- 'package-archives
- '("melpa" . "https://melpa.org/packages/")
- t)
+(setq package-archives
+      '(("melpa" . "https://melpa.org/packages/")
+        ("gnu" . "https://elpa.gnu.org/packages/")
+        ("org" . "http://orgmode.org/elpa/")))
+(package-initialize)
 
+(use-package highlight-numbers :ensure t)
+(use-package highlight-quoted :ensure t)
+(use-package org :ensure t)
+(use-package org-bullets :ensure t)
+(use-package ox-twbs :ensure t)
 (use-package ace-window :ensure t)
-(use-package recentf :ensure t)
+;; (use-package recentf :ensure t)
 (use-package tramp :ensure t)
 (use-package bm :ensure t)
 (use-package flycheck :ensure t)
 (use-package ledger-mode :ensure t)
 (use-package flycheck-ledger :ensure t)
 (use-package iedit :ensure t)
-(use-package neotree :ensure t)
+;; (use-package neotree :ensure t)
 (use-package electric :ensure t)
 (use-package go-mode :ensure t)
-(use-package xah-find :ensure t)
+;; (use-package xah-find :ensure t)
 (use-package bison-mode :ensure t)
 (use-package spacemacs-theme :defer t :ensure t)
 (use-package theme-changer :ensure t)
 (use-package rainbow-delimiters :ensure t)
-(use-package disable-mouse :ensure t)
+(use-package helm-descbinds :ensure t)
+;; (use-package disable-mouse :ensure t)
 (use-package auctex :defer t :ensure t)
-(use-package slime :defer t :ensure t)
+;; (use-package slime :defer t :ensure t)
+(use-package sly :defer t :ensure t)
 (use-package transpose-frame :defer t :ensure t)
 (use-package magit :defer t :ensure t)
 
@@ -251,6 +257,8 @@
 
 (add-hook 'lisp-mode-hook
           (lambda ()
+	    (highlight-quoted-mode t)
+	    (highlight-numbers-mode t)
             (define-key lisp-mode-map "\"" 'electric-pair)
             (define-key lisp-mode-map "(" 'electric-pair)
             (define-key lisp-mode-map "[" 'electric-pair)
@@ -258,7 +266,28 @@
 
 ;; org-mode.
 (with-eval-after-load 'org
-  (define-key org-mode-map [(control c) (control c)] 'org-global-cycle))
+  ;; (define-key org-mode-map [(control c) (control c)] 'org-global-cycle)
+  (define-key org-mode-map [(control c) (control n)] 'org-insert-heading)
+  (define-key org-mode-map [(control up)] 'org-metaup)
+  (define-key org-mode-map [(control down)] 'org-metadown)
+  (define-key org-mode-map [(control left)] 'org-metaleft)
+  (define-key org-mode-map [(control right)] 'org-metaright)
+  (org-bullets-mode t)
+  )
+(require 'ox-latex)
+(require 'ox-beamer)
+(require 'ox-twbs)
+(add-to-list 'org-latex-packages-alist '("" "listingsutf8"))
+(add-to-list 'org-latex-packages-alist '("cache=false" "minted"))
+;; NOTE: minted requires pygments to be installed.
+(setq org-latex-listings 'minted)
+(setq org-latex-pdf-process
+      '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+        "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+        "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+(setq org-src-fontify-natively t)
+(require 'ob-lisp)
+(setq org-latex-prefer-user-labels t)
 
 ;; Magit.
 
@@ -267,19 +296,27 @@
 
 ;; Settting up slime.
 (setq inferior-lisp-program "/usr/local/bin/sbcl")
-(setq slime-contribs '(slime-fancy))
+(setq sly-contribs '(sly-fancy))
 
-(add-hook 'slime-mode-hook
-	  (defun slime-sanitize-bindings ()
-	    "Removes SLIME's keybindings."
-	    (cond ((boundp 'slime-mode-map)
-		   (define-key slime-mode-map (kbd "C-c C-e") nil)
-		   (define-key slime-mode-map (kbd "M-p") nil)
-		   (define-key slime-mode-map (kbd "M-n") nil)
-		   (define-key slime-mode-map (kbd "M-,") nil)
-		   (define-key slime-mode-map (kbd "M-.") nil)
-		   (message "slime keybinding on C-c x has been sanitized"))
-		  ('t (message "slime keybindings not sanitized")))))
+(add-hook 'go-mode-hook
+	  (defun golang-sanitize-bindings ()
+	    "Removes Golang's keybindings."
+	    (cond ((boundp 'go-mode-map)
+		   (define-key go-mode-map (kbd "C-c C-a") nil)
+		   (message "go-mode keybinding on C-c x has been sanitized"))
+		  ('t (message "go-mode keybindings not sanitized")))))
+
+(add-hook 'sly-mode-hook
+	  (defun sly-sanitize-bindings ()
+	    "Removes SLY's keybindings."
+	    (cond ((boundp 'sly-mode-map)
+		   (define-key sly-mode-map (kbd "C-c C-e") nil)
+		   (define-key sly-editing-mode-map (kbd "M-p") nil)
+		   (define-key sly-editing-mode-map (kbd "M-n") nil)
+		   (define-key sly-editing-mode-map (kbd "M-,") nil)
+		   (define-key sly-editing-mode-map (kbd "M-.") nil)
+		   (message "sly keybinding on C-c x has been sanitized"))
+		  ('t (message "sly keybindings not sanitized")))))
 
 ;; Visible bookmarks (bm).
 ;; For terminal environment.
@@ -305,21 +342,21 @@
 (setq tramp-default-method "scp")
 
 ;; Saves a list of recent opened files
-(require 'recentf)
-(recentf-mode 1)
-(setq recentf-auto-cleanup 'never)
+;; (require 'recentf)
+;; (recentf-mode 1)
+;; (setq recentf-auto-cleanup 'never)
 
-(defun recentf-open-files-compl ()
-  (interactive)
-  (let* ((all-files recentf-list)
-	 (tocpl (mapcar (function
-			 (lambda (x) (cons (file-name-nondirectory x) x))) all-files))
-	 (prompt (append '("Recent File name: ") tocpl))
-	 (fname (completing-read (car prompt) (cdr prompt) nil nil)))
-    (find-file (or (cdr (assoc fname tocpl))
-		   fname))))
+;; (defun recentf-open-files-compl ()
+;;   (interactive)
+;;   (let* ((all-files recentf-list)
+;; 	 (tocpl (mapcar (function
+;; 			 (lambda (x) (cons (file-name-nondirectory x) x))) all-files))
+;; 	 (prompt (append '("Recent File name: ") tocpl))
+;; 	 (fname (completing-read (car prompt) (cdr prompt) nil nil)))
+;;     (find-file (or (cdr (assoc fname tocpl))
+;; 		   fname))))
 
-(global-set-key "\C-x\C-r" 'recentf-open-files-compl)
+;; (global-set-key "\C-x\C-r" 'recentf-open-files-compl)
 
 ;; Use xetex instead of pdftex.
 ;; (setq latex-run-command "xetex")
@@ -329,9 +366,9 @@
 (show-paren-mode 1)
 
 ;; Neotree.
-(require 'neotree)
-(global-set-key [f8] 'neotree-toggle)
-(setq neo-smart-open t)
+;; (require 'neotree)
+;; (global-set-key [f8] 'neotree-toggle)
+;; (setq neo-smart-open t)
 
 ;; Flycheck.
 (require 'flycheck)
@@ -343,7 +380,7 @@
 (put 'narrow-to-region 'disabled nil)
 
 ;; Disable mouse.
-(global-disable-mouse-mode)
+;; (global-disable-mouse-mode)
 
 ;; Rainbow-delimiters for major programming modes.
 (add-hook 'prog-mode-hook #'rainbow-delimiters-mode)
