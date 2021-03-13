@@ -9,7 +9,6 @@
 ;; Then install package: gnu-elpa-keyring-update
 ;; Finally, uncomment (setq package-check...) and restart.
 
-
 (require 'package)
 (setq package-archives
       '(("melpa" . "https://melpa.org/packages/")
@@ -41,12 +40,23 @@
 (use-package helm-descbinds :ensure t)
 ;; (use-package disable-mouse :ensure t)
 (use-package auctex :defer t :ensure t)
-;; (use-package slime :defer t :ensure t)
-(use-package sly :defer t :ensure t)
+(use-package slime :defer t :ensure t)
+;; (use-package sly :defer t :ensure t)
 (use-package transpose-frame :defer t :ensure t)
 (use-package magit :defer t :ensure t)
 
                                         ; Emacs-specific configuration.
+
+;; Winner mode.
+(winner-mode 1)
+(global-set-key (kbd "<left>") 'winner-undo)
+(global-set-key (kbd "<right>") 'winner-undo)
+
+;; Overriding list-buffers.
+(global-set-key (kbd "C-x C-b") 'switch-to-buffer)
+
+;; Overriding annoying stuff.
+(global-set-key (kbd "M-t") nil)
 
 ;; LaTeX configuration.
 (setq TeX-PDF-mode t)
@@ -295,28 +305,54 @@
 (global-set-key (kbd "C-x C-x 1") 'transpose-frame)
 
 ;; Settting up slime.
-(setq inferior-lisp-program "/usr/local/bin/sbcl")
-(setq sly-contribs '(sly-fancy))
+;; (setq inferior-lisp-program "/usr/local/bin/sbcl")
+(setq inferior-lisp-program "ros -Q run")
+(setq slime-contribs '(slime-fancy))
 
 (add-hook 'go-mode-hook
 	  (defun golang-sanitize-bindings ()
 	    "Removes Golang's keybindings."
 	    (cond ((boundp 'go-mode-map)
 		   (define-key go-mode-map (kbd "C-c C-a") nil)
-		   (message "go-mode keybinding on C-c x has been sanitized"))
+		   (message "go-mode keybindings have been sanitized"))
 		  ('t (message "go-mode keybindings not sanitized")))))
 
-(add-hook 'sly-mode-hook
-	  (defun sly-sanitize-bindings ()
-	    "Removes SLY's keybindings."
-	    (cond ((boundp 'sly-mode-map)
-		   (define-key sly-mode-map (kbd "C-c C-e") nil)
-		   (define-key sly-editing-mode-map (kbd "M-p") nil)
-		   (define-key sly-editing-mode-map (kbd "M-n") nil)
-		   (define-key sly-editing-mode-map (kbd "M-,") nil)
-		   (define-key sly-editing-mode-map (kbd "M-.") nil)
-		   (message "sly keybinding on C-c x has been sanitized"))
+(add-hook 'slime-mode-hook
+	  (defun slime-sanitize-bindings ()
+	    "Removes slime's keybindings."
+	    (cond ((boundp 'slime-mode-map)
+		   ;; Map used by Sly:
+		   ;; (define-key sly-editing-mode-map (kbd "M-p") nil)
+		   (define-key slime-mode-map (kbd "C-c C-f") 'fill-region)
+		   (define-key slime-mode-map (kbd "C-c C-e") nil)
+		   (define-key slime-mode-map (kbd "M-p") nil)
+		   (define-key slime-mode-map (kbd "M-n") nil)
+		   (define-key slime-mode-map (kbd "M-,") nil)
+		   (define-key slime-mode-map (kbd "M-.") nil)
+		   (message "sly keybindings have been sanitized"))
 		  ('t (message "sly keybindings not sanitized")))))
+
+(add-hook 'web-mode-hook
+	  (defun web-sanitize-bindings ()
+	    "Removes web mode's keybindings."
+	    (cond ((boundp 'web-mode-map)
+		   (define-key web-mode-map (kbd "C-c C-a") 'bm-previous)
+		   (define-key web-mode-map (kbd "C-c C-o") 'bm-toggle)
+		   (define-key web-mode-map (kbd "C-c C-e") 'bm-next)
+		   (message "web mode keybindings have been sanitized"))
+		  ('t (message "web mode keybindings not sanitized")))))
+
+(add-hook 'LaTeX-mode-hook
+	  (defun tex-sanitize-bindings ()
+	    "Removes TeX-latex's keybindings."
+	    (cond ((boundp 'LaTeX-mode-map)
+		   (define-key LaTeX-mode-map (kbd "C-c C-o") 'bm-toggle)
+		   (define-key LaTeX-mode-map (kbd "C-c C-e") 'bm-next)
+		   (define-key LaTeX-mode-map (kbd "C-c C-a") 'bm-previous)
+		   (define-key LaTeX-mode-map (kbd "Tab") 'fill-region)
+
+		   (message "TeX-latex's keybindings have been sanitized"))
+		  ('t (message "TeX-latex's keybindings not sanitized")))))
 
 ;; Visible bookmarks (bm).
 ;; For terminal environment.
@@ -397,6 +433,11 @@
 ;; Use Golang syntax with CXGO programs
 (add-to-list 'auto-mode-alist '("\\.cx\\'" . go-mode))
 
+;; Always use web-mode for .html, .js and .css files.
+(add-to-list 'auto-mode-alist '("\\.js\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.html\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.css\\'" . web-mode))
+
 ;; Copy `diff` results without `-` or `+` at the beginning of line.
 (defun copy-diff-region ()
   "Copy diff region without + or - markers."
@@ -410,3 +451,39 @@
 
 (provide '.emacs)
 ;;; .emacs ends here
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   (quote
+    (slime zerodark-theme zenburn-theme yasnippet xah-find web-mode w3m use-package transpose-frame toml-mode theme-changer swiper subatomic256-theme subatomic-theme srcery-theme spacemacs-theme smartparens simpleclip redshank rainbow-identifiers rainbow-delimiters ox-twbs ox-mediawiki org-bullets org nyx-theme nord-theme neotree monokai-theme monokai-pro-theme monokai-alt-theme markdown-mode magit macrostep ledger-mode iedit highlight-thing highlight-quoted highlight-numbers helm-go-package helm-descbinds go-rename go-guru go-eldoc gnu-elpa-keyring-update flycheck-ledger f discover-my-major disable-mouse darkokai-theme cyberpunk-theme command-log-mode codesearch cider chronos bm bison-mode bash-completion badwolf-theme autopair auto-dictionary auctex atom-one-dark-theme atom-dark-theme arjen-grey-theme apropospriate-theme anaphora ample-zen-theme ample-theme ahungry-theme afternoon-theme ace-window abyss-theme))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
+
+
+
+(defadvice pop-to-buffer (before cancel-other-window first)
+  (ad-set-arg 1 nil))
+
+(ad-activate 'pop-to-buffer)
+
+;; Toggle window dedication
+(defun toggle-window-dedicated ()
+  "Toggle whether the current active window is dedicated or not"
+  (interactive)
+  (message
+   (if (let (window (get-buffer-window (current-buffer)))
+         (set-window-dedicated-p window 
+                                 (not (window-dedicated-p window))))
+       "Window '%s' is dedicated"
+     "Window '%s' is normal")
+   (current-buffer)))
+
+;; Press [pause] key in each window you want to "freeze"
+(global-set-key [f12] 'toggle-window-dedicated)
