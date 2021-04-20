@@ -43,9 +43,24 @@
 (use-package slime :defer t :ensure t)
 ;; (use-package sly :defer t :ensure t)
 (use-package transpose-frame :defer t :ensure t)
-(use-package magit :defer t :ensure t)
+;; (use-package magit :defer t :ensure t)
 
                                         ; Emacs-specific configuration.
+
+;; save buffer
+(global-set-key (kbd "C-x C-x") 'save-buffer)
+(global-set-key (kbd "C-x C-s") 'nil)
+
+;; undo
+(global-set-key (kbd "C-j") 'undo)
+
+;; fill-region globally
+(global-set-key (kbd "C-c C-f") 'fill-region)
+
+;; Using regexp search instead of incremental search.
+(setq flex-isearch-mode t)
+(global-set-key (kbd "C-s") 'flex-isearch-forward)
+(global-set-key (kbd "C-r") 'flex-isearch-backward)
 
 ;; Winner mode.
 (winner-mode 1)
@@ -61,7 +76,6 @@
 ;; LaTeX configuration.
 (setq TeX-PDF-mode t)
 (setq latex-run-command "pdflatex")
-
 
 ;; cl includes some required definitions by w3m.
 (require 'cl)
@@ -230,7 +244,7 @@
 ;; Disable mark ring.
 (setq mark-ring-max 0)
 (setq global-mark-ring-max 0)
-(global-unset-key (kbd "C-x C-x"))
+;; (global-unset-key (kbd "C-x C-x"))
 
 ;; Problem with certain fonts.
 (setq inhibit-compacting-font-caches t)
@@ -302,18 +316,37 @@
 ;; Magit.
 
 ;; Transpose frame.
-(global-set-key (kbd "C-x C-x 1") 'transpose-frame)
+;; (global-set-key (kbd "C-x C-x 1") 'transpose-frame)
 
 ;; Settting up slime.
 ;; (setq inferior-lisp-program "/usr/local/bin/sbcl")
 (setq inferior-lisp-program "ros -Q run")
 (setq slime-contribs '(slime-fancy))
 
+(add-hook 'emacs-lisp-mode-hook
+	  (defun emacs-lisp-sanitize-bindings ()
+	    "Removes emacs lisp's keybindings."
+	    (cond ((boundp 'emacs-lisp-mode-map)
+		   (define-key emacs-lisp-mode-map (kbd "C-x C-x") 'save-buffer)
+		   (define-key emacs-lisp-mode-map (kbd "C-x C-s") 'nil)
+		   (message "emacs lisp keybindings have been sanitized"))
+		  ('t (message "emacs lisp keybindings not sanitized")))))
+
+(add-hook 'sh-mode-hook
+	  (defun shell-sanitize-bindings ()
+	    "Removes shell script's keybindings."
+	    (cond ((boundp 'sh-mode-map)
+		   (define-key sh-mode-map (kbd "C-x C-x") 'save-buffer)
+		   (define-key sh-mode-map (kbd "C-x C-s") 'nil)
+		   (message "shell script keybindings have been sanitized"))
+		  ('t (message "shell script keybindings not sanitized")))))
+
 (add-hook 'go-mode-hook
 	  (defun golang-sanitize-bindings ()
 	    "Removes Golang's keybindings."
 	    (cond ((boundp 'go-mode-map)
 		   (define-key go-mode-map (kbd "C-c C-a") nil)
+		   (define-key go-mode-map (kbd "C-c C-f") 'fill-region)
 		   (message "go-mode keybindings have been sanitized"))
 		  ('t (message "go-mode keybindings not sanitized")))))
 
@@ -323,19 +356,32 @@
 	    (cond ((boundp 'slime-mode-map)
 		   ;; Map used by Sly:
 		   ;; (define-key sly-editing-mode-map (kbd "M-p") nil)
+		   (define-key slime-mode-map (kbd "C-x C-x") 'save-buffer)
+		   (define-key slime-mode-map (kbd "C-x C-s") 'nil)
 		   (define-key slime-mode-map (kbd "C-c C-f") 'fill-region)
-		   (define-key slime-mode-map (kbd "C-c C-e") nil)
+		   (define-key slime-mode-map (kbd "C-c C-a") 'bm-previous)
+		   (define-key slime-mode-map (kbd "C-c C-o") 'bm-toggle)
+		   (define-key slime-mode-map (kbd "C-c C-e") 'bm-next)
 		   (define-key slime-mode-map (kbd "M-p") nil)
 		   (define-key slime-mode-map (kbd "M-n") nil)
 		   (define-key slime-mode-map (kbd "M-,") nil)
 		   (define-key slime-mode-map (kbd "M-.") nil)
-		   (message "sly keybindings have been sanitized"))
-		  ('t (message "sly keybindings not sanitized")))))
+		   (message "slime keybindings have been sanitized"))
+		  ('t (message "slime keybindings not sanitized")))))
+
+(add-hook 'slime-repl-mode-hook
+	  (defun slime-repl-sanitize-bindings ()
+	    "Removes slime repl's keybindings."
+	    (cond ((boundp 'slime-repl-mode-map)
+		   (define-key slime-repl-mode-map (kbd "C-c C-r") 'slime-restart-inferior-lisp)
+		   (message "slime repl keybindings have been sanitized"))
+		  ('t (message "slime repl keybindings not sanitized")))))
 
 (add-hook 'web-mode-hook
 	  (defun web-sanitize-bindings ()
 	    "Removes web mode's keybindings."
 	    (cond ((boundp 'web-mode-map)
+		   (define-key web-mode-map (kbd "C-c C-f") 'fill-region)
 		   (define-key web-mode-map (kbd "C-c C-a") 'bm-previous)
 		   (define-key web-mode-map (kbd "C-c C-o") 'bm-toggle)
 		   (define-key web-mode-map (kbd "C-c C-e") 'bm-next)
@@ -349,7 +395,7 @@
 		   (define-key LaTeX-mode-map (kbd "C-c C-o") 'bm-toggle)
 		   (define-key LaTeX-mode-map (kbd "C-c C-e") 'bm-next)
 		   (define-key LaTeX-mode-map (kbd "C-c C-a") 'bm-previous)
-		   (define-key LaTeX-mode-map (kbd "Tab") 'fill-region)
+		   (define-key LaTeX-mode-map (kbd "C-c C-f") 'fill-region)
 
 		   (message "TeX-latex's keybindings have been sanitized"))
 		  ('t (message "TeX-latex's keybindings not sanitized")))))
@@ -426,7 +472,7 @@
 (setq calendar-latitude 32.534851)
 (setq calendar-longitude -117.043457)
 (require 'theme-changer)
-(change-theme 'spacemacs-dark 'spacemacs-dark)
+(change-theme 'nord 'nord)
 
                                         ; Extra.
 
@@ -456,9 +502,33 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(ansi-color-names-vector
+   ["#080808" "#d70000" "#67b11d" "#875f00" "#268bd2" "#af00df" "#00ffff" "#b2b2b2"])
+ '(custom-enabled-themes (quote (nord)))
+ '(custom-safe-themes
+   (quote
+    ("37768a79b479684b0756dec7c0fc7652082910c37d8863c35b702db3f16000f8" default)))
+ '(hl-todo-keyword-faces
+   (quote
+    (("TODO" . "#dc752f")
+     ("NEXT" . "#dc752f")
+     ("THEM" . "#2aa198")
+     ("PROG" . "#268bd2")
+     ("OKAY" . "#268bd2")
+     ("DONT" . "#d70000")
+     ("FAIL" . "#d70000")
+     ("DONE" . "#86dc2f")
+     ("NOTE" . "#875f00")
+     ("KLUDGE" . "#875f00")
+     ("HACK" . "#875f00")
+     ("TEMP" . "#875f00")
+     ("FIXME" . "#dc752f")
+     ("XXX+" . "#dc752f")
+     ("\\?\\?\\?+" . "#dc752f"))))
  '(package-selected-packages
    (quote
-    (slime zerodark-theme zenburn-theme yasnippet xah-find web-mode w3m use-package transpose-frame toml-mode theme-changer swiper subatomic256-theme subatomic-theme srcery-theme spacemacs-theme smartparens simpleclip redshank rainbow-identifiers rainbow-delimiters ox-twbs ox-mediawiki org-bullets org nyx-theme nord-theme neotree monokai-theme monokai-pro-theme monokai-alt-theme markdown-mode magit macrostep ledger-mode iedit highlight-thing highlight-quoted highlight-numbers helm-go-package helm-descbinds go-rename go-guru go-eldoc gnu-elpa-keyring-update flycheck-ledger f discover-my-major disable-mouse darkokai-theme cyberpunk-theme command-log-mode codesearch cider chronos bm bison-mode bash-completion badwolf-theme autopair auto-dictionary auctex atom-one-dark-theme atom-dark-theme arjen-grey-theme apropospriate-theme anaphora ample-zen-theme ample-theme ahungry-theme afternoon-theme ace-window abyss-theme))))
+    (flex-isearch slime zerodark-theme zenburn-theme yasnippet xah-find web-mode w3m use-package transpose-frame toml-mode theme-changer swiper subatomic256-theme subatomic-theme srcery-theme spacemacs-theme smartparens simpleclip redshank rainbow-identifiers rainbow-delimiters ox-twbs ox-mediawiki org-bullets org nyx-theme nord-theme neotree monokai-theme monokai-pro-theme monokai-alt-theme markdown-mode macrostep ledger-mode iedit highlight-thing highlight-quoted highlight-numbers helm-go-package helm-descbinds go-rename go-guru go-eldoc gnu-elpa-keyring-update flycheck-ledger f discover-my-major disable-mouse darkokai-theme cyberpunk-theme command-log-mode codesearch cider chronos bm bison-mode bash-completion badwolf-theme autopair auto-dictionary auctex atom-one-dark-theme atom-dark-theme arjen-grey-theme apropospriate-theme anaphora ample-zen-theme ample-theme ahungry-theme afternoon-theme ace-window abyss-theme)))
+ '(pdf-view-midnight-colors (quote ("#b2b2b2" . "#262626"))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
