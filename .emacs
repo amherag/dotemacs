@@ -16,6 +16,7 @@
         ("org" . "http://orgmode.org/elpa/")))
 (package-initialize)
 
+(use-package nord-theme :ensure t)
 (use-package highlight-numbers :ensure t)
 (use-package highlight-quoted :ensure t)
 (use-package org :ensure t)
