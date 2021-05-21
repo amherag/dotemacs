@@ -49,6 +49,11 @@
 
                                         ; Emacs-specific configuration.
 
+;; Always display in current window.
+;; (add-to-list 'display-buffer-alist
+;;              '(".*" . display-buffer-same-window))
+;; display-buffer-alist
+
 ;; save buffer
 (global-set-key (kbd "C-x C-x") 'save-buffer)
 (global-set-key (kbd "C-x C-s") 'nil)
@@ -394,6 +399,7 @@
 	  (defun tex-sanitize-bindings ()
 	    "Removes TeX-latex's keybindings."
 	    (cond ((boundp 'LaTeX-mode-map)
+		   (define-key LaTeX-mode-map (kbd "C-j") 'undo)
 		   (define-key LaTeX-mode-map (kbd "C-c C-o") 'bm-toggle)
 		   (define-key LaTeX-mode-map (kbd "C-c C-e") 'bm-next)
 		   (define-key LaTeX-mode-map (kbd "C-c C-a") 'bm-previous)
@@ -530,13 +536,14 @@
  '(package-selected-packages
    (quote
     (flex-isearch slime zerodark-theme zenburn-theme yasnippet xah-find web-mode w3m use-package transpose-frame toml-mode theme-changer swiper subatomic256-theme subatomic-theme srcery-theme spacemacs-theme smartparens simpleclip redshank rainbow-identifiers rainbow-delimiters ox-twbs ox-mediawiki org-bullets org nyx-theme nord-theme neotree monokai-theme monokai-pro-theme monokai-alt-theme markdown-mode macrostep ledger-mode iedit highlight-thing highlight-quoted highlight-numbers helm-go-package helm-descbinds go-rename go-guru go-eldoc gnu-elpa-keyring-update flycheck-ledger f discover-my-major disable-mouse darkokai-theme cyberpunk-theme command-log-mode codesearch cider chronos bm bison-mode bash-completion badwolf-theme autopair auto-dictionary auctex atom-one-dark-theme atom-dark-theme arjen-grey-theme apropospriate-theme anaphora ample-zen-theme ample-theme ahungry-theme afternoon-theme ace-window abyss-theme)))
- '(pdf-view-midnight-colors (quote ("#b2b2b2" . "#262626"))))
+ '(pdf-view-midnight-colors (quote ("#b2b2b2" . "#262626")))
+ '(pop-up-frames nil))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- )
+ '(default ((t (:family "default" :foundry "default" :slant normal :weight normal :height 100 :width normal)))))
 
 
 
